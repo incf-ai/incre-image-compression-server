@@ -4,7 +4,7 @@
 
 use std::net::TcpListener;
 use std::path::PathBuf;
-use std::process::{Child, Command, Stdio};
+use std::process::{Child, Command};
 use std::time::{Duration, Instant};
 
 use incre_image_compression_client::{Client, Config, Error, Fetched, Submitted, job_key};
@@ -27,7 +27,14 @@ struct Server {
     socket: PathBuf,
     port: u16,
     serve: Option<Proc>,
-    _dir: PathBuf,
+    dir: PathBuf,
+}
+
+impl Drop for Server {
+    fn drop(&mut self) {
+        drop(self.serve.take());
+        let _removed = std::fs::remove_dir_all(&self.dir);
+    }
 }
 
 fn bin() -> Command {
@@ -40,7 +47,10 @@ fn free_port() -> std::io::Result<u16> {
 
 impl Server {
     fn start(name: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        let dir = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join(name);
+        // A unix socket's path must fit in 108 bytes, which CARGO_TARGET_TMPDIR may not
+        // (a GitHub checkout of this repo is 90 bytes deep), so the socket goes in /tmp.
+        let dir = std::env::temp_dir().join(format!("icss-{}-{name}", std::process::id()));
+        let _stale = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir)?;
         let port = free_port()?;
         let mut s = Self {
@@ -48,7 +58,7 @@ impl Server {
             socket: dir.join("work.sock"),
             port,
             serve: None,
-            _dir: dir,
+            dir,
         };
         s.restart()?;
         Ok(s)
@@ -62,14 +72,15 @@ impl Server {
             .arg(&self.socket)
             .args(["--max-held-mb", "8", "--max-jobs", "3"])
             .env("INCRE_COMPRESS_TOKEN", TOKEN)
-            .stderr(Stdio::null())
+            .stderr(std::fs::File::create(self.dir.join("serve.log"))?)
             .spawn()?;
         self.serve = Some(Proc(child));
         let client = Client::new(&self.url, TOKEN);
         let t = Instant::now();
         while client.status().is_err() {
             if t.elapsed() > Duration::from_secs(20) {
-                return Err("serve didn't start".into());
+                let log = std::fs::read_to_string(self.dir.join("serve.log")).unwrap_or_default();
+                return Err(format!("serve didn't start: {log}").into());
             }
             std::thread::sleep(Duration::from_millis(50));
         }
@@ -82,7 +93,7 @@ impl Server {
             .arg("--socket")
             .arg(&self.socket)
             .args(["--threads", &threads.to_string()])
-            .stderr(Stdio::null())
+            .stderr(std::fs::File::create(self.dir.join("work.log"))?)
             .spawn()?;
         Ok(Proc(child))
     }
