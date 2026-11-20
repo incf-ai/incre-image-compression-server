@@ -138,11 +138,18 @@ pub struct Work {
     pub socket: PathBuf,
     pub threads: usize,
     pub sched_idle: bool,
+    /// The memory the threads' jobs may hold at once, in bytes; 0 picks it from the cgroup's
+    /// limit (see `work::budget`).
+    pub memory: u64,
 }
 
 impl Work {
     pub fn parse(args: &[String]) -> io::Result<Self> {
-        let f = Flags::parse(args, &["socket", "threads"], &["no-sched-idle"])?;
+        let f = Flags::parse(
+            args,
+            &["socket", "threads", "memory-mb"],
+            &["no-sched-idle"],
+        )?;
         let all = std::thread::available_parallelism().map_or(1, usize::from);
         Ok(Self {
             socket: f
@@ -154,6 +161,7 @@ impl Work {
                 n => n,
             },
             sched_idle: !f.switch("no-sched-idle"),
+            memory: f.num("memory-mb", 0u64)?.saturating_mul(1 << 20),
         })
     }
 }
@@ -165,12 +173,21 @@ mod tests {
     #[test]
     #[expect(clippy::disallowed_macros, reason = "tests assert")]
     fn flags_parse() -> io::Result<()> {
-        let args: Vec<String> = ["--socket", "/tmp/s", "--threads", "3", "--no-sched-idle"]
-            .map(String::from)
-            .into();
+        let args: Vec<String> = [
+            "--socket",
+            "/tmp/s",
+            "--threads",
+            "3",
+            "--no-sched-idle",
+            "--memory-mb",
+            "100",
+        ]
+        .map(String::from)
+        .into();
         let w = Work::parse(&args)?;
         assert_eq!(w.socket, PathBuf::from("/tmp/s"));
         assert_eq!(w.threads, 3);
+        assert_eq!(w.memory, 100 << 20);
         assert!(!w.sched_idle);
         assert!(Work::parse(&["--threads".to_owned()]).is_err());
         assert!(Work::parse(&["--bogus".to_owned(), "1".to_owned()]).is_err());

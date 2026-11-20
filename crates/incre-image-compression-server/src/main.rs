@@ -32,7 +32,8 @@ incre-image-compression-server: recompresses pictures to AVIF or JPEG XL on spar
 usage:
   incre-image-compression-server serve [--listen ADDR] [--token-file PATH] [--socket PATH]
       [--max-held-mb N] [--max-job-mb N] [--max-jobs N] [--result-ttl-s N]
-  incre-image-compression-server work [--socket PATH] [--threads N] [--no-sched-idle]
+  incre-image-compression-server work [--socket PATH] [--threads N] [--memory-mb N]
+      [--no-sched-idle]
   incre-image-compression-server token      print a new random token
   incre-image-compression-server version | help
 
@@ -48,6 +49,9 @@ INCRE_COMPRESS_MAX_HELD_MB); a flag wins. Defaults:
   --max-jobs      10000
   --result-ttl-s  1800   results nobody fetches and deletes go after this
   --threads       every CPU
+  --memory-mb     80% of the cgroup's MemoryHigh (else MemoryMax, else half the RAM):
+                  the memory the jobs being encoded may take at once; a thread waits
+                  for room before starting a picture, from an estimate of its size
 ";
 
 fn main() -> ExitCode {

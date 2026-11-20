@@ -440,7 +440,7 @@ dependencies = [
 
 [[package]]
 name = "incre-image-compression-client"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "incre-image-compression-proto",
  "serde",
@@ -451,7 +451,7 @@ dependencies = [
 
 [[package]]
 name = "incre-image-compression-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "gamut-jxl-sys",
  "image",
@@ -463,7 +463,7 @@ dependencies = [
 
 [[package]]
 name = "incre-image-compression-proto"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -471,7 +471,7 @@ dependencies = [
 
 [[package]]
 name = "incre-image-compression-server"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "axum",
  "image",

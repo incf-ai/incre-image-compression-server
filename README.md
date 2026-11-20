@@ -85,6 +85,11 @@ binary:
   nearly all the time.
 - **`work`** runs one thread per CPU. Each thread connects to `serve` over
   `/run/incre-image-compression-server/work.sock` and blocks until it is handed a job.
+  The threads share a memory budget, 80% of the unit's `MemoryHigh` by default (`--memory-mb`
+  to set it): before a picture is encoded its thread reserves an estimate from the picture's
+  header, and waits while the pictures in progress hold too much. Otherwise enough threads
+  with big pictures at once push the cgroup past `MemoryHigh`, and the kernel stalls them all
+  in reclaim.
 
 If a worker dies mid-job, its job goes back to the front of the queue. If `serve` restarts, the
 workers reconnect.
