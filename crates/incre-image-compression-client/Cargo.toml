@@ -1,0 +1,19 @@
+[package]
+name = "incre-image-compression-client"
+description = "A patient blocking client for incre-image-compression-server, and the `incre-compress` command."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+incre-image-compression-proto.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+ureq.workspace = true
+
+[lints]
+workspace = true

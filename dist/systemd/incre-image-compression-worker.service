@@ -1,0 +1,46 @@
+[Unit]
+Description=incre-image-compression-server: encoder threads on idle CPU only
+Documentation=https://github.com/incf-ai/incre-image-compression-server
+Wants=incre-image-compression-server.service
+After=incre-image-compression-server.service
+
+[Service]
+Type=simple
+User=incre-image-compression-server
+Group=incre-image-compression-server
+EnvironmentFile=-/etc/incre-image-compression-server/incre-image-compression-server.env
+ExecStart=/usr/local/bin/incre-image-compression-server work
+# A worker reconnects on its own when serve restarts; restart the process only if it dies.
+Restart=always
+RestartSec=10
+
+RuntimeDirectory=incre-image-compression-server
+RuntimeDirectoryMode=0750
+RuntimeDirectoryPreserve=yes
+
+# Idle priority, three ways: the cgroup only gets CPU its siblings leave (cpu.idle; systemd
+# 252 and later, install.sh drops in CPUWeight=1 on older ones), the threads are SCHED_IDLE,
+# and nice 19. Disk reads and writes are idle class too, though jobs never touch the disk.
+CPUWeight=idle
+CPUSchedulingPolicy=idle
+Nice=19
+IOSchedulingClass=idle
+# Under memory pressure the kernel should pick the workers, not your compiler.
+OOMScoreAdjust=500
+MemoryHigh=6G
+MemoryMax=8G
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+PrivateNetwork=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX
+LockPersonality=yes
+
+[Install]
+WantedBy=multi-user.target

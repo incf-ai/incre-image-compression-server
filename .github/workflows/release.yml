@@ -1,0 +1,53 @@
+name: release
+
+# Push a tag like v0.1.0 to build the tarball and publish it as a GitHub release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  linux-x86_64:
+    # The oldest supported Ubuntu runner, so the binaries need only an old glibc (2.35).
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: native build tools
+        run: sudo apt-get update && sudo apt-get install -y cmake nasm meson ninja-build
+      - uses: dtolnay/rust-toolchain@stable
+      - name: version matches the tag
+        run: |
+          v=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "incre-image-compression-server") | .version')
+          [ "v$v" = "$GITHUB_REF_NAME" ] || { echo "tag $GITHUB_REF_NAME but Cargo.toml says $v"; exit 1; }
+          echo "VERSION=$v" >> "$GITHUB_ENV"
+      - name: build
+        # x86-64-v3 (AVX2: Haswell and later, so any 12700K); the C codecs pick their own
+        # SIMD at run time either way.
+        env:
+          RUSTFLAGS: -C target-cpu=x86-64-v3
+        run: cargo build --release --locked -p incre-image-compression-server -p incre-image-compression-client
+      - name: test
+        env:
+          RUSTFLAGS: -C target-cpu=x86-64-v3
+        run: cargo test --workspace --release --locked
+      - name: tarball
+        run: |
+          name=incre-image-compression-server-$VERSION-x86_64-linux
+          mkdir -p "$name/bin"
+          cp target/release/incre-image-compression-server target/release/incre-compress "$name/bin/"
+          cp -r dist/systemd dist/install.sh dist/uninstall.sh README.md LICENSE THIRD_PARTY_LICENSES.md "$name/"
+          tools/c-licenses.sh "$name/licenses"
+          tar -czf "$name.tar.gz" "$name"
+          sha256sum "$name.tar.gz" > "$name.tar.gz.sha256"
+          echo "TARBALL=$name.tar.gz" >> "$GITHUB_ENV"
+      - name: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "$TARBALL" "$TARBALL.sha256" \
+            --title "incre-image-compression-server $VERSION" --generate-notes

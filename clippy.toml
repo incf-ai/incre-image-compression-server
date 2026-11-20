@@ -1,0 +1,17 @@
+# Only `unreachable!` and `unimplemented!` may panic (docs/design.md, section 11.1).
+# Tests opt back in with `#[expect(clippy::disallowed_macros, reason = "...")]`.
+disallowed-macros = [
+    { path = "std::assert", reason = "return an error instead; assertions are for tests" },
+    { path = "std::assert_eq", reason = "return an error instead; assertions are for tests" },
+    { path = "std::assert_ne", reason = "return an error instead; assertions are for tests" },
+    { path = "std::debug_assert", reason = "return an error instead; assertions are for tests" },
+    { path = "std::debug_assert_eq", reason = "return an error instead; assertions are for tests" },
+    { path = "std::debug_assert_ne", reason = "return an error instead; assertions are for tests" },
+]
+
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true
+allow-indexing-slicing-in-tests = true
+allow-print-in-tests = true
+allow-dbg-in-tests = true

@@ -1,0 +1,20 @@
+[package]
+name = "incre-image-compression-core"
+description = "Recompresses a picture to AVIF (libaom) or JPEG XL (libjxl), whichever is smaller within SSIMULACRA2 gates."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+gamut-jxl-sys.workspace = true
+image.workspace = true
+libavif-sys.workspace = true
+libc.workspace = true
+incre-image-compression-proto.workspace = true
+ssimulacra2.workspace = true
+
+[lints]
+workspace = true

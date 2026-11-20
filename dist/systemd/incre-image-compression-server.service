@@ -1,0 +1,37 @@
+[Unit]
+Description=incre-image-compression-server: HTTP API and job queue (RAM only)
+Documentation=https://github.com/incf-ai/incre-image-compression-server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=incre-image-compression-server
+Group=incre-image-compression-server
+EnvironmentFile=-/etc/incre-image-compression-server/incre-image-compression-server.env
+ExecStart=/usr/local/bin/incre-image-compression-server serve
+Restart=on-failure
+RestartSec=5
+
+# The worker socket. Both units declare it and keep it, so neither removes it under the other.
+RuntimeDirectory=incre-image-compression-server
+RuntimeDirectoryMode=0750
+RuntimeDirectoryPreserve=yes
+
+# Normal priority, so it answers even when the CPU is full; it sleeps nearly all the time.
+# Jobs live in RAM: cap it a little above INCRE_COMPRESS_MAX_HELD_MB.
+MemoryMax=3G
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=yes
+
+[Install]
+WantedBy=multi-user.target

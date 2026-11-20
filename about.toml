@@ -1,0 +1,22 @@
+# Licence disclosure: `cargo about generate about.hbs -o THIRD_PARTY_LICENSES.md` renders
+# THIRD_PARTY_LICENSES.md (CI checks it is current). Keep `accepted` in step with deny.toml.
+accepted = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "0BSD",
+    "BSL-1.0",
+    "CC0-1.0",
+    "Unicode-3.0",
+    "CDLA-Permissive-2.0",
+    "MPL-2.0",
+    "bzip2-1.0.6",
+]
+# Our own crates are MIT and described by LICENSE.
+private = { ignore = true }
+# Test-only crates are not shipped.
+ignore-dev-dependencies = true

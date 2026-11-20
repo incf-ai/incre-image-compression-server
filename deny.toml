@@ -1,0 +1,48 @@
+# Dependency policy, checked by `cargo deny check` in CI.
+
+[graph]
+# Check every optional dependency, not just the default features.
+all-features = true
+
+[licenses]
+# Licences whose only obligation is to ship their text and notices. MPL-2.0 is allowed only
+# unmodified: The workspace has no `[patch]` or vendored crates.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "0BSD",
+    "BSL-1.0",
+    "CC0-1.0",
+    "Unicode-3.0",
+    "CDLA-Permissive-2.0",
+    "MPL-2.0",
+    # The original bzip2 licence (BSD-style), on libbz2-rs-sys: tar.bz2 and bzip2 zip members.
+    "bzip2-1.0.6",
+]
+confidence-threshold = 0.93
+# The allowlist is policy, not a list of what we use today.
+unused-allowed-license = "allow"
+# Every exception needs a comment giving the reason.
+exceptions = []
+
+[licenses.private]
+# Our own crates: MIT, publish = false.
+ignore = true
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+allow-wildcard-paths = true
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+
+[advisories]
+yanked = "deny"

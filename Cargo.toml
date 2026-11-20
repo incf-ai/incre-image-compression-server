@@ -1,0 +1,67 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99"
+license = "MIT"
+repository = "https://github.com/incf-ai/incre-image-compression-server"
+publish = false
+
+[workspace.dependencies]
+incre-image-compression-proto = { path = "crates/incre-image-compression-proto" }
+incre-image-compression-core = { path = "crates/incre-image-compression-core" }
+incre-image-compression-client = { path = "crates/incre-image-compression-client" }
+
+axum = { version = "0.8", default-features = false, features = ["http1", "tokio", "query", "json"] }
+gamut-jxl-sys = "0.1.1"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp", "gif", "bmp"] }
+libavif-sys = { version = "0.18", default-features = false, features = ["codec-dav1d", "codec-aom"] }
+libc = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["float_roundtrip"] }
+sha2 = "0.10"
+ssimulacra2 = { version = "0.5", default-features = false }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "signal", "sync", "time", "io-util"] }
+ureq = { version = "3", default-features = false }
+
+[workspace.lints.rust]
+unused_must_use = "deny"
+unsafe_op_in_unsafe_fn = "deny"
+unreachable_patterns = "deny"
+rust_2018_idioms = { level = "deny", priority = -1 }
+missing_debug_implementations = "warn"
+unused_results = "warn"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unwrap_in_result = "deny"
+get_unwrap = "deny"
+indexing_slicing = "deny"
+string_slice = "deny"
+exit = "deny"
+dbg_macro = "deny"
+print_stdout = "deny"
+print_stderr = "deny"
+let_underscore_must_use = "deny"
+await_holding_lock = "deny"
+as_conversions = "deny"
+cast_possible_truncation = "deny"
+allow_attributes = "deny"
+allow_attributes_without_reason = "deny"
+undocumented_unsafe_blocks = "deny"
+disallowed_macros = "deny"
+unreachable = "allow"
+unimplemented = "allow"
+
+# Panics unwind so a worker thread can contain a codec's panic and fail just that job.
+[profile.release]
+# Function names stay for backtraces; the debug info would make the server 90 MB.
+strip = "debuginfo"
+lto = "thin"
+codegen-units = 4
